@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Qissmet">
-    <link rel="apple-touch-icon" href="icon.png?v=4">
+    <link rel="apple-touch-icon" href="icon.png?v=5">
 
     <style>
         * {
@@ -467,6 +467,12 @@
             padding: 4px 10px;
             border-radius: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease;
+        }
+        .date-badge.highlight {
+            background-color: #25d366;
+            color: #000000;
+            font-weight: 700;
         }
 
         .msg-row {
@@ -621,7 +627,7 @@
             stroke-width: 2;
         }
 
-        /* SCREEN 3: CONTACT INFO & IN-CHAT SEARCH */
+        /* SCREEN 3: CONTACT INFO, DATE JUMP & IN-CHAT SEARCH */
         #contactInfoScreen {
             z-index: 25;
             background-color: #000000;
@@ -649,7 +655,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
         }
 
         .avatar-edit-container {
@@ -691,7 +697,7 @@
             color: #ffffff;
         }
 
-        .search-section-card {
+        .section-card {
             width: 100%;
             background: #1c1c1e;
             border-radius: 12px;
@@ -699,6 +705,47 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #8e8e93;
+            letter-spacing: 0.5px;
+        }
+
+        .date-picker-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-input-styled {
+            flex: 1;
+            background: #2c2c2e;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 40px;
+            padding: 0 12px;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            color-scheme: dark;
+        }
+
+        .jump-btn {
+            background: #25d366;
+            color: #000000;
+            border: none;
+            border-radius: 10px;
+            padding: 0 16px;
+            height: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .jump-btn:active {
+            opacity: 0.8;
         }
 
         .search-input-inner {
@@ -731,7 +778,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 280px;
+            max-height: 220px;
             overflow-y: auto;
         }
 
@@ -919,7 +966,7 @@
             </div>
         </div>
 
-        <!-- SCREEN 3: CONTACT INFO & MESSAGE SEARCH -->
+        <!-- SCREEN 3: CONTACT INFO, DATE JUMP & IN-CHAT SEARCH -->
         <div class="screen hidden" id="contactInfoScreen">
             <div class="contact-info-header">
                 <div class="back-btn" onclick="closeContactInfo()">
@@ -938,8 +985,18 @@
 
                 <div class="info-contact-name" id="infoContactName">Contact Name</div>
 
-                <div class="search-section-card">
-                    <p style="font-size: 14px; font-weight: 600; color: #8e8e93;">SEARCH MESSAGES</p>
+                <!-- JUMP TO DATE CARD -->
+                <div class="section-card">
+                    <span class="section-title">JUMP TO DATE</span>
+                    <div class="date-picker-row">
+                        <input type="date" id="datePickerInput" class="date-input-styled" />
+                        <button class="jump-btn" onclick="jumpToSelectedDate()">Jump</button>
+                    </div>
+                </div>
+
+                <!-- IN-CHAT SEARCH CARD -->
+                <div class="section-card">
+                    <span class="section-title">SEARCH MESSAGES</span>
                     <div class="search-input-inner">
                         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         <input type="text" id="inChatSearchInput" placeholder="Search in chat..." oninput="searchInCurrentChat()" />
@@ -1219,11 +1276,53 @@
         function openContactInfo() {
             document.getElementById('inChatSearchInput').value = '';
             document.getElementById('inChatSearchResults').innerHTML = '';
+            document.getElementById('datePickerInput').value = '';
             document.getElementById('contactInfoScreen').classList.remove('hidden');
         }
 
         function closeContactInfo() {
             document.getElementById('contactInfoScreen').classList.add('hidden');
+        }
+
+        function jumpToSelectedDate() {
+            const rawDateVal = document.getElementById('datePickerInput').value; // YYYY-MM-DD
+            if (!rawDateVal) return;
+
+            const [year, month, day] = rawDateVal.split('-');
+            const formattedQuery = `${parseInt(month)}/${parseInt(day)}/${year.slice(-2)}`;
+            const altFormattedQuery = `${parseInt(day)}/${parseInt(month)}/${year.slice(-2)}`;
+
+            const matchIndex = currentMessages.findIndex(m => {
+                const cleanDate = cleanString(m.date);
+                return cleanDate === formattedQuery || cleanDate === altFormattedQuery || cleanDate.includes(`${month}/${day}`);
+            });
+
+            if (matchIndex === -1) {
+                alert('No messages found for this date.');
+                return;
+            }
+
+            renderLimit = Math.max(renderLimit, currentMessages.length - matchIndex + 20);
+            renderMessagesBatch();
+
+            closeContactInfo();
+
+            setTimeout(() => {
+                const dateBadges = document.querySelectorAll('.date-badge');
+                let targetBadge = null;
+
+                dateBadges.forEach(badge => {
+                    if (badge.innerText.includes(formattedQuery) || badge.innerText.includes(altFormattedQuery) || badge.innerText.includes(`${month}/${day}`)) {
+                        targetBadge = badge;
+                    }
+                });
+
+                if (targetBadge) {
+                    targetBadge.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetBadge.classList.add('highlight');
+                    setTimeout(() => targetBadge.classList.remove('highlight'), 2000);
+                }
+            }, 150);
         }
 
         function searchInCurrentChat() {
@@ -1245,7 +1344,6 @@
                 item.className = 'search-result-item';
                 item.onclick = () => {
                     closeContactInfo();
-                    // Expand limit if message is far up
                     renderLimit = Math.max(renderLimit, currentMessages.length);
                     renderMessagesBatch();
                 };
