@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Qissmet">
-    <link rel="apple-touch-icon" href="icon.png?v=5">
+    <link rel="apple-touch-icon" href="icon.png?v=6">
 
     <style>
         * {
@@ -501,6 +501,7 @@
             box-shadow: 0 1px 1.5px rgba(0,0,0,0.3);
             -webkit-user-select: text;
             user-select: text;
+            transition: outline 0.2s ease, background-color 0.2s ease;
         }
         .msg-row.outgoing .bubble {
             background-color: #1b4d3e;
@@ -509,6 +510,10 @@
         .msg-row.incoming .bubble {
             background-color: #262d31;
             border-bottom-left-radius: 4px;
+        }
+        .bubble.msg-highlight {
+            outline: 2px solid #25d366;
+            background-color: #225c48 !important;
         }
 
         .msg-text {
@@ -1285,7 +1290,7 @@
         }
 
         function jumpToSelectedDate() {
-            const rawDateVal = document.getElementById('datePickerInput').value; // YYYY-MM-DD
+            const rawDateVal = document.getElementById('datePickerInput').value;
             if (!rawDateVal) return;
 
             const [year, month, day] = rawDateVal.split('-');
@@ -1325,6 +1330,27 @@
             }, 150);
         }
 
+        function jumpToMessageIndex(targetIndex) {
+            closeContactInfo();
+
+            renderLimit = Math.max(renderLimit, currentMessages.length - targetIndex + 20);
+            renderMessagesBatch();
+
+            setTimeout(() => {
+                const allMsgRows = document.querySelectorAll('#chatArea .msg-row');
+                const targetRow = allMsgRows[targetIndex - (currentMessages.length - renderLimit)];
+
+                if (targetRow) {
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const bubble = targetRow.querySelector('.bubble');
+                    if (bubble) {
+                        bubble.classList.add('msg-highlight');
+                        setTimeout(() => bubble.classList.remove('msg-highlight'), 2000);
+                    }
+                }
+            }, 150);
+        }
+
         function searchInCurrentChat() {
             const query = document.getElementById('inChatSearchInput').value.toLowerCase().trim();
             const resultsContainer = document.getElementById('inChatSearchResults');
@@ -1332,21 +1358,22 @@
 
             if (!query) return;
 
-            const matches = currentMessages.filter(m => m.text.toLowerCase().includes(query));
+            const matches = [];
+            currentMessages.forEach((msg, index) => {
+                if (msg.text.toLowerCase().includes(query)) {
+                    matches.push({ msg, index });
+                }
+            });
 
             if (matches.length === 0) {
                 resultsContainer.innerHTML = `<p style="font-size: 13px; color: #8e8e93; padding: 6px;">No messages found.</p>`;
                 return;
             }
 
-            matches.slice(0, 30).forEach(msg => {
+            matches.slice(0, 30).forEach(({ msg, index }) => {
                 const item = document.createElement('div');
                 item.className = 'search-result-item';
-                item.onclick = () => {
-                    closeContactInfo();
-                    renderLimit = Math.max(renderLimit, currentMessages.length);
-                    renderMessagesBatch();
-                };
+                item.onclick = () => jumpToMessageIndex(index);
 
                 item.innerHTML = `
                     <div class="result-meta">
