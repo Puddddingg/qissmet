@@ -994,4 +994,165 @@
                     lastDate = msg.date;
                     const dateRow = document.createElement('div');
                     dateRow.className = 'date-badge-row';
-                    dateRow.innerHTML =
+                    dateRow.innerHTML = `<span class="date-badge">${escapeHtml(msg.date)}</span>`;
+                    chatArea.appendChild(dateRow);
+                }
+
+                const isOutgoing = msg.sender.toLowerCase().includes('subah');
+                const rowClass = isOutgoing ? 'outgoing' : 'incoming';
+
+                let textHtml = escapeHtml(msg.text);
+                if (!textHtml || textHtml.includes('<attached>') || textHtml.includes('omitted')) {
+                    textHtml = '<span class="media-pill">📷 Photo / Media</span>';
+                }
+
+                const row = document.createElement('div');
+                row.className = `msg-row ${rowClass}`;
+
+                const tickSvg = isOutgoing ? `
+                    <span class="ticks">
+                        <svg viewBox="0 0 16 11"><path d="M1 6l3 3 7-7M5 9l3 3 7-7"/></svg>
+                    </span>
+                ` : '';
+
+                row.innerHTML = `
+                    <div class="bubble">
+                        <div class="msg-text">${textHtml}</div>
+                        <div class="meta">
+                            ${msg.time}
+                            ${tickSvg}
+                        </div>
+                    </div>
+                `;
+                chatArea.appendChild(row);
+            });
+        }
+
+        document.getElementById('chatArea').addEventListener('scroll', function() {
+            if (this.scrollTop === 0 && renderLimit < currentMessages.length) {
+                renderLimit += 100;
+                const oldHeight = this.scrollHeight;
+                renderMessagesBatch();
+                this.scrollTop = this.scrollHeight - oldHeight;
+            }
+        });
+
+        function showHomeScreen() {
+            document.getElementById('chatScreen').classList.add('hidden');
+            document.getElementById('homeScreen').classList.remove('hidden');
+            renderHomeList();
+        }
+
+        function scrollToBottom() {
+            const area = document.getElementById('chatArea');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function promptDeleteChat(convoId) {
+            chatPendingDelete = convoId;
+            document.getElementById('deleteSheetBackdrop').classList.add('active');
+        }
+
+        function closeDeleteSheet(e) {
+            if (!e || e.target.id === 'deleteSheetBackdrop' || e.target.classList.contains('cancel')) {
+                document.getElementById('deleteSheetBackdrop').classList.remove('active');
+                chatPendingDelete = null;
+            }
+        }
+
+        async function confirmDeleteChat() {
+            if (chatPendingDelete) {
+                await deleteChat(chatPendingDelete);
+                closeDeleteSheet();
+            }
+        }
+
+        async function deleteChat(convoId) {
+            await removeConversation(convoId);
+            renderHomeList();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                parseAndStoreChat(evt.target.result);
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        function cleanString(str) {
+            return str.replace(/[\u200e\u200f\u202f\u200b\u00a0]/g, ' ').trim();
+        }
+
+        async function parseAndStoreChat(rawText) {
+            const lines = rawText.split('\n');
+            const messageHeaderRegex = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.*)$/i;
+
+            const parsed = [];
+            let currentMsg = null;
+            let contactName = 'New Contact';
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = cleanString(lines[i]);
+                if (!line) continue;
+
+                const match = line.match(messageHeaderRegex);
+                if (match) {
+                    if (currentMsg) parsed.push(currentMsg);
+
+                    const sender = match[3].trim();
+                    if (!sender.toLowerCase().includes('subah') && contactName === 'New Contact') {
+                        contactName = sender;
+                    }
+
+                    currentMsg = {
+                        date: match[1].trim(),
+                        time: match[2].trim().replace(/:\d{2}(\s*[AP]M)/i, '$1'),
+                        sender: sender,
+                        text: match[4] ? match[4].trim() : ''
+                    };
+                } else if (currentMsg) {
+                    currentMsg.text += '\n' + line;
+                }
+            }
+            if (currentMsg) parsed.push(currentMsg);
+
+            if (parsed.length === 0) {
+                alert('Could not parse any messages from this file.');
+                return;
+            }
+
+            const lastMsg = parsed[parsed.length - 1];
+            const newConvo = {
+                id: 'chat_' + Date.now(),
+                contactName: contactName,
+                lastTime: lastMsg ? lastMsg.time : '',
+                lastMessage: lastMsg ? (lastMsg.text.slice(0, 35) + '...') : '',
+                messages: parsed
+            };
+
+            await saveConversation(newConvo);
+            renderHomeList();
+            openChatScreen(newConvo.id);
+        }
+
+        function filterChats() {
+            const query = document.getElementById('searchInput').value;
+            renderHomeList(query);
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            renderHomeList();
+        });
+    </script>
+</body>
+</html>
