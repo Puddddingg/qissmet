@@ -17,6 +17,9 @@
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
@@ -38,31 +41,12 @@
             position: relative;
             background-color: #0b141a;
             overflow: hidden;
-        }
-
-        /* iOS Status Bar */
-        .status-bar {
-            height: 44px;
-            padding: 10px 24px 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-            z-index: 50;
-            background: #000000;
-        }
-        .status-bar .icons {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
+            padding-top: env(safe-area-inset-top);
         }
 
         .screen {
             position: absolute;
-            top: 44px;
+            top: env(safe-area-inset-top);
             bottom: 0;
             left: 0;
             right: 0;
@@ -81,7 +65,7 @@
         }
 
         .home-header {
-            padding: 8px 16px 4px 16px;
+            padding: 12px 16px 4px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -175,6 +159,8 @@
             color: #ffffff;
             font-size: 16px;
             width: 100%;
+            -webkit-user-select: text;
+            user-select: text;
         }
 
         .filter-pills {
@@ -261,9 +247,9 @@
             padding: 10px 16px;
             gap: 12px;
             background-color: #000000;
-            transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1);
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.25, 1);
             cursor: pointer;
-            user-select: none;
+            touch-action: pan-y;
         }
         .chat-item:active {
             background-color: #1c1c1e;
@@ -348,7 +334,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding-bottom: 12px;
+            padding-bottom: env(safe-area-inset-bottom, 12px);
             padding-top: 4px;
         }
         .tab-item {
@@ -371,17 +357,6 @@
             stroke: currentColor;
             fill: none;
             stroke-width: 1.8;
-        }
-        .tab-badge {
-            position: absolute;
-            top: -2px;
-            right: -6px;
-            background: #25d366;
-            color: #000000;
-            font-size: 10px;
-            font-weight: 700;
-            border-radius: 10px;
-            padding: 1px 5px;
         }
 
         /* CONVERSATION DETAIL */
@@ -510,6 +485,8 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 1px 1.5px rgba(0,0,0,0.3);
+            -webkit-user-select: text;
+            user-select: text;
         }
         .msg-row.outgoing .bubble {
             background-color: #1b4d3e;
@@ -543,7 +520,6 @@
             margin-top: 2px;
             font-size: 11px;
             color: rgba(255, 255, 255, 0.6);
-            user-select: none;
         }
         .ticks {
             width: 15px;
@@ -589,6 +565,7 @@
             padding: 6px 10px 10px 10px;
             gap: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: env(safe-area-inset-bottom, 10px);
         }
         .input-plus-btn {
             color: #007aff;
@@ -636,20 +613,6 @@
             stroke-width: 2;
         }
 
-        .home-indicator-wrapper {
-            background: #000000;
-            padding-bottom: 4px;
-        }
-        .home-bar {
-            width: 134px;
-            height: 5px;
-            background: #ffffff;
-            border-radius: 100px;
-            margin: 4px auto 6px auto;
-            opacity: 0.8;
-        }
-
-        /* ACTION SHEET (CONFIRM DELETE) */
         .modal-backdrop {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -703,28 +666,6 @@
     <div class="app-container">
         <input type="file" id="fileInput" accept=".txt" />
 
-        <!-- Top iOS Status Bar -->
-        <div class="status-bar">
-            <span>9:32</span>
-            <div class="icons">
-                <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff">
-                    <rect x="0" y="8" width="3" height="3" rx="0.5"/>
-                    <rect x="4.5" y="5.5" width="3" height="5.5" rx="0.5"/>
-                    <rect x="9" y="3" width="3" height="8" rx="0.5"/>
-                    <rect x="13.5" y="0" width="3" height="11" rx="0.5"/>
-                </svg>
-                <svg width="15" height="11" viewBox="0 0 16 12" fill="#fff">
-                    <path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4.2-2.8a6 6 0 018.4 0l1.2-1.2a7.7 7.7 0 00-10.8 0l1.2 1.2zm-2.4-2.4a9.4 9.4 0 0113.2 0l1.2-1.2a11.1 11.1 0 00-15.6 0l1.2 1.2z"/>
-                </svg>
-                <span style="font-size: 12px; margin-left: 2px;">78</span>
-                <svg width="24" height="12" viewBox="0 0 25 12" fill="none">
-                    <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#fff"/>
-                    <rect x="2" y="2" width="16" height="8" rx="2" fill="#fff"/>
-                    <path d="M23 4.5v3" stroke="#fff" stroke-linecap="round"/>
-                </svg>
-            </div>
-        </div>
-
         <!-- SCREEN 1: WHATSAPP HOME / CHATS LIST -->
         <div class="screen" id="homeScreen">
             <div class="home-header">
@@ -750,7 +691,7 @@
             <div class="search-box-wrapper">
                 <div class="search-box">
                     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" id="searchInput" placeholder="Ask Meta AI or Search" oninput="filterChats()" />
+                    <input type="text" id="searchInput" placeholder="Search chats or content..." oninput="filterChats()" />
                 </div>
             </div>
 
@@ -761,7 +702,6 @@
                 <div class="pill">Groups</div>
             </div>
 
-            <!-- Chat list container -->
             <div class="chat-list" id="chatListContainer"></div>
 
             <div class="meta-ai-floater">
@@ -846,32 +786,68 @@
                 <button class="action-sheet-btn cancel" onclick="closeDeleteSheet()">Cancel</button>
             </div>
         </div>
-
-        <div class="home-indicator-wrapper">
-            <div class="home-bar"></div>
-        </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'whatsapp_restored_conversations_v4';
+        const DB_NAME = 'QissmetDB';
+        const STORE_NAME = 'conversations';
+        let db = null;
         let chatPendingDelete = null;
+        let currentMessages = [];
+        let renderLimit = 100;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
 
         function getStoredConversations() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            if (data) {
-                try { return JSON.parse(data); } catch (e) {}
-            }
-            return [];
+            return new Promise((resolve) => {
+                if (!db) return resolve([]);
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => resolve([]);
+            });
         }
 
-        function saveConversations(convos) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(convos));
+        function saveConversation(convo) {
+            return new Promise((resolve) => {
+                if (!db) return resolve();
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.put(convo);
+                tx.oncomplete = () => resolve();
+            });
         }
 
-        function renderHomeList(filter = '') {
+        function removeConversation(convoId) {
+            return new Promise((resolve) => {
+                if (!db) return resolve();
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.delete(convoId);
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        async function renderHomeList(filter = '') {
             const listContainer = document.getElementById('chatListContainer');
             listContainer.innerHTML = '';
-            const convos = getStoredConversations();
+            const convos = await getStoredConversations();
 
             if (convos.length === 0) {
                 listContainer.innerHTML = `
@@ -884,7 +860,12 @@
                 return;
             }
 
-            const filtered = convos.filter(c => c.contactName.toLowerCase().includes(filter.toLowerCase()));
+            const query = filter.toLowerCase();
+            const filtered = convos.filter(c => {
+                const nameMatch = c.contactName.toLowerCase().includes(query);
+                const msgMatch = query ? c.messages.some(m => m.text.toLowerCase().includes(query)) : false;
+                return nameMatch || msgMatch;
+            });
 
             filtered.forEach(convo => {
                 const rowWrapper = document.createElement('div');
@@ -906,20 +887,35 @@
                 item.className = 'chat-item';
                 
                 let startX = 0;
-                let isSwiped = false;
+                let startY = 0;
                 let holdTimer = null;
+                let isDragging = false;
 
                 item.addEventListener('touchstart', (e) => {
                     startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    isDragging = false;
+                    
                     holdTimer = setTimeout(() => {
-                        promptDeleteChat(convo.id);
-                    }, 600);
+                        if (!isDragging) {
+                            promptDeleteChat(convo.id);
+                        }
+                    }, 500);
                 }, { passive: true });
 
                 item.addEventListener('touchmove', (e) => {
-                    const moveX = e.touches[0].clientX;
-                    if (Math.abs(moveX - startX) > 10) {
+                    const currentX = e.touches[0].clientX;
+                    const currentY = e.touches[0].clientY;
+                    const diffX = startX - currentX;
+                    const diffY = Math.abs(startY - currentY);
+
+                    if (Math.abs(diffX) > 8 || diffY > 8) {
+                        isDragging = true;
                         clearTimeout(holdTimer);
+                    }
+
+                    if (diffY < 15 && diffX > 0 && diffX < 120) {
+                        item.style.transform = `translateX(-${diffX}px)`;
                     }
                 }, { passive: true });
 
@@ -928,20 +924,20 @@
                     const endX = e.changedTouches[0].clientX;
                     const diffX = startX - endX;
 
-                    if (diffX > 50) {
+                    item.style.transform = '';
+
+                    if (diffX > 40) {
                         document.querySelectorAll('.chat-item.swiped').forEach(el => el.classList.remove('swiped'));
                         item.classList.add('swiped');
-                        isSwiped = true;
-                    } else if (diffX < -30) {
+                    } else if (diffX < -20) {
                         item.classList.remove('swiped');
-                        isSwiped = false;
                     }
                 });
 
                 item.onclick = () => {
                     if (item.classList.contains('swiped')) {
                         item.classList.remove('swiped');
-                    } else {
+                    } else if (!isDragging) {
                         openChatScreen(convo.id);
                     }
                 };
@@ -967,193 +963,35 @@
             });
         }
 
-        function openChatScreen(convoId) {
-            const convos = getStoredConversations();
+        async function openChatScreen(convoId) {
+            const convos = await getStoredConversations();
             const convo = convos.find(c => c.id === convoId);
             if (!convo) return;
 
             document.getElementById('detailContactName').innerText = convo.contactName;
             document.getElementById('detailAvatar').innerText = convo.contactName.charAt(0).toUpperCase();
 
-            renderMessages(convo.messages);
+            currentMessages = convo.messages || [];
+            renderLimit = 100;
+            renderMessagesBatch();
 
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.remove('hidden');
             scrollToBottom();
         }
 
-        function showHomeScreen() {
-            document.getElementById('chatScreen').classList.add('hidden');
-            document.getElementById('homeScreen').classList.remove('hidden');
-            renderHomeList();
-        }
-
-        function scrollToBottom() {
-            const area = document.getElementById('chatArea');
-            area.scrollTop = area.scrollHeight;
-        }
-
-        function renderMessages(messages) {
+        function renderMessagesBatch() {
             const chatArea = document.getElementById('chatArea');
             chatArea.innerHTML = '';
             let lastDate = '';
 
-            messages.forEach(msg => {
+            const sliceToRender = currentMessages.length > renderLimit
+                ? currentMessages.slice(currentMessages.length - renderLimit)
+                : currentMessages;
+
+            sliceToRender.forEach(msg => {
                 if (msg.date !== lastDate) {
                     lastDate = msg.date;
                     const dateRow = document.createElement('div');
                     dateRow.className = 'date-badge-row';
-                    dateRow.innerHTML = `<span class="date-badge">${escapeHtml(msg.date)}</span>`;
-                    chatArea.appendChild(dateRow);
-                }
-
-                const isOutgoing = msg.sender.toLowerCase().includes('subah');
-                const rowClass = isOutgoing ? 'outgoing' : 'incoming';
-
-                let textHtml = escapeHtml(msg.text);
-                if (!textHtml || textHtml.includes('<attached>') || textHtml.includes('omitted')) {
-                    textHtml = '<span class="media-pill">📷 Photo / Media</span>';
-                }
-
-                const row = document.createElement('div');
-                row.className = `msg-row ${rowClass}`;
-
-                const tickSvg = isOutgoing ? `
-                    <span class="ticks">
-                        <svg viewBox="0 0 16 11"><path d="M1 6l3 3 7-7M5 9l3 3 7-7"/></svg>
-                    </span>
-                ` : '';
-
-                row.innerHTML = `
-                    <div class="bubble">
-                        <div class="msg-text">${textHtml}</div>
-                        <div class="meta">
-                            ${msg.time}
-                            ${tickSvg}
-                        </div>
-                    </div>
-                `;
-                chatArea.appendChild(row);
-            });
-        }
-
-        /* DELETION LOGIC */
-        function promptDeleteChat(convoId) {
-            chatPendingDelete = convoId;
-            document.getElementById('deleteSheetBackdrop').classList.add('active');
-        }
-
-        function closeDeleteSheet(e) {
-            if (!e || e.target.id === 'deleteSheetBackdrop' || e.target.classList.contains('cancel')) {
-                document.getElementById('deleteSheetBackdrop').classList.remove('active');
-                chatPendingDelete = null;
-            }
-        }
-
-        function confirmDeleteChat() {
-            if (chatPendingDelete) {
-                deleteChat(chatPendingDelete);
-                closeDeleteSheet();
-            }
-        }
-
-        function deleteChat(convoId) {
-            let convos = getStoredConversations();
-            convos = convos.filter(c => c.id !== convoId);
-            saveConversations(convos);
-            renderHomeList();
-        }
-
-        /* FILE IMPORT */
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                parseAndStoreChat(evt.target.result);
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        });
-
-        function cleanString(str) {
-            return str.replace(/[\u200e\u200f\u202f\u200b\u00a0]/g, ' ').trim();
-        }
-
-        function parseAndStoreChat(rawText) {
-            const lines = rawText.split('\n');
-            const messageHeaderRegex = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.*)$/i;
-
-            const parsed = [];
-            let currentMsg = null;
-            let contactName = 'New Contact';
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = cleanString(lines[i]);
-                if (!line) continue;
-
-                const match = line.match(messageHeaderRegex);
-                if (match) {
-                    if (currentMsg) parsed.push(currentMsg);
-
-                    const sender = match[3].trim();
-                    if (!sender.toLowerCase().includes('subah') && contactName === 'New Contact') {
-                        contactName = sender;
-                    }
-
-                    currentMsg = {
-                        date: match[1].trim(),
-                        time: match[2].trim().replace(/:\d{2}(\s*[AP]M)/i, '$1'),
-                        sender: sender,
-                        text: match[4] ? match[4].trim() : ''
-                    };
-                } else if (currentMsg) {
-                    currentMsg.text += '\n' + line;
-                }
-            }
-            if (currentMsg) parsed.push(currentMsg);
-
-            if (parsed.length === 0) {
-                alert('Could not parse any messages from this file.');
-                return;
-            }
-
-            const convos = getStoredConversations();
-            const existingIdx = convos.findIndex(c => c.contactName.toLowerCase() === contactName.toLowerCase());
-
-            const lastMsg = parsed[parsed.length - 1];
-            const newConvo = {
-                id: 'chat_' + Date.now(),
-                contactName: contactName,
-                lastTime: lastMsg ? lastMsg.time : '',
-                lastMessage: lastMsg ? (lastMsg.text.slice(0, 35) + '...') : '',
-                messages: parsed
-            };
-
-            if (existingIdx >= 0) {
-                convos[existingIdx] = newConvo;
-            } else {
-                convos.unshift(newConvo);
-            }
-
-            saveConversations(convos);
-            renderHomeList();
-            openChatScreen(newConvo.id);
-        }
-
-        function filterChats() {
-            const query = document.getElementById('searchInput').value;
-            renderHomeList(query);
-        }
-
-        function escapeHtml(str) {
-            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            renderHomeList();
-        });
-    </script>
-</body>
-</html>
+                    dateRow.innerHTML =
