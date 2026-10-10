@@ -39,7 +39,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            background-color: #0b141a;
+            background-color: #000000;
             overflow: hidden;
             padding-top: env(safe-area-inset-top);
         }
@@ -88,7 +88,7 @@
         .home-header-right {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
         .icon-circle-btn {
             width: 40px;
@@ -119,8 +119,8 @@
             cursor: pointer;
         }
         .add-chat-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             fill: #000000;
         }
 
@@ -188,6 +188,7 @@
         .chat-list {
             flex: 1;
             overflow-y: auto;
+            padding-bottom: 90px;
         }
 
         .empty-state {
@@ -315,48 +316,89 @@
         .meta-ai-floater {
             position: absolute;
             right: 18px;
-            bottom: 90px;
-            width: 48px;
-            height: 48px;
+            bottom: 96px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #ff5e7e, #7a22ff 70%);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(122, 34, 255, 0.5);
+            box-shadow: 0 4px 14px rgba(122, 34, 255, 0.4);
             cursor: pointer;
+            z-index: 15;
+        }
+
+        /* WHATSAPP FLOATING GLASS TAB BAR */
+        .tab-bar-container {
+            position: absolute;
+            bottom: calc(env(safe-area-inset-bottom, 12px) + 8px);
+            left: 12px;
+            right: 12px;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
         }
 
         .tab-bar {
-            height: 72px;
-            background: #000000;
-            border-top: 1px solid rgba(255,255,255,0.12);
+            width: 100%;
+            height: 64px;
+            background: rgba(30, 30, 32, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 36px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            padding-bottom: env(safe-area-inset-bottom, 12px);
-            padding-top: 4px;
+            padding: 0 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
+
         .tab-item {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            color: #8e8e93;
+            justify-content: center;
+            gap: 3px;
+            color: #a0a0a5;
             font-size: 10px;
             font-weight: 500;
             cursor: pointer;
             position: relative;
+            padding: 6px 0;
+            border-radius: 24px;
         }
         .tab-item.active {
             color: #ffffff;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .tab-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .tab-item svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             stroke: currentColor;
             fill: none;
             stroke-width: 1.8;
+        }
+        .tab-badge {
+            position: absolute;
+            top: -3px;
+            right: -8px;
+            background-color: #25d366;
+            color: #000000;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
         }
 
         /* CONVERSATION DETAIL */
@@ -664,7 +706,7 @@
 <body>
 
     <div class="app-container">
-        <input type="file" id="fileInput" accept=".txt" />
+        <input type="file" id="fileInput" accept=".txt" onchange="handleFileSelect(event)" />
 
         <!-- SCREEN 1: WHATSAPP HOME / CHATS LIST -->
         <div class="screen" id="homeScreen">
@@ -676,11 +718,11 @@
                     <div class="icon-circle-btn">
                         <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     </div>
-                    <label class="add-chat-btn" for="fileInput" title="Import WhatsApp Chat">
+                    <div class="add-chat-btn" onclick="triggerFileInput()" title="Import WhatsApp Chat">
                         <svg viewBox="0 0 24 24">
                             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                         </svg>
-                    </label>
+                    </div>
                 </div>
             </div>
 
@@ -711,26 +753,40 @@
                 </svg>
             </div>
 
-            <div class="tab-bar">
-                <div class="tab-item">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
-                    <span>Updates</span>
-                </div>
-                <div class="tab-item">
-                    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    <span>Calls</span>
-                </div>
-                <div class="tab-item">
-                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span>Communities</span>
-                </div>
-                <div class="tab-item active">
-                    <svg viewBox="0 0 24 24" fill="#ffffff" stroke="none"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-                    <span>Chats</span>
-                </div>
-                <div class="tab-item">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a8.5 8.5 0 0 1 13 0"/></svg>
-                    <span>You</span>
+            <div class="tab-bar-container">
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+                        </div>
+                        <span>Updates</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span class="tab-badge">3</span>
+                        </div>
+                        <span>Calls</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <span>Communities</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="#ffffff" stroke="none"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                            <span class="tab-badge">43</span>
+                        </div>
+                        <span>Chats</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a8.5 8.5 0 0 1 13 0"/></svg>
+                        </div>
+                        <span>You</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -795,6 +851,22 @@
         let chatPendingDelete = null;
         let currentMessages = [];
         let renderLimit = 100;
+
+        function triggerFileInput() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                parseAndStoreChat(evt.target.result);
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
 
         function initDB() {
             return new Promise((resolve, reject) => {
@@ -1071,18 +1143,6 @@
             await removeConversation(convoId);
             renderHomeList();
         }
-
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                parseAndStoreChat(evt.target.result);
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        });
 
         function cleanString(str) {
             return str.replace(/[\u200e\u200f\u202f\u200b\u00a0]/g, ' ').trim();
