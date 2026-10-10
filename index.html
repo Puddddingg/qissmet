@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Qissmet">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png?v=3">
 
     <style>
         * {
@@ -184,11 +184,11 @@
             color: #25d366;
         }
 
-        /* CHAT LIST & CLEAN ROW BORDER */
+        /* CHAT LIST */
         .chat-list {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 90px;
+            padding-bottom: 80px;
         }
 
         .empty-state {
@@ -213,7 +213,7 @@
             position: relative;
             overflow: hidden;
             background-color: #000000;
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
         }
 
         .delete-action-btn {
@@ -245,7 +245,7 @@
             position: relative;
             display: flex;
             align-items: center;
-            padding: 10px 16px;
+            padding: 12px 16px;
             gap: 12px;
             background-color: #000000;
             transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.25, 1);
@@ -313,23 +313,7 @@
             flex-shrink: 0;
         }
 
-        .meta-ai-floater {
-            position: absolute;
-            right: 18px;
-            bottom: 84px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ff5e7e, #7a22ff 70%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(122, 34, 255, 0.4);
-            cursor: pointer;
-            z-index: 15;
-        }
-
-        /* BOTTOM TAB BAR FIX - CLEAN BORDER SEPARATION */
+        /* BOTTOM NAVIGATION BAR */
         .tab-bar-wrapper {
             position: absolute;
             bottom: 0;
@@ -337,12 +321,13 @@
             right: 0;
             background-color: #000000;
             border-top: 0.5px solid rgba(255, 255, 255, 0.12);
-            padding-bottom: env(safe-area-inset-bottom, 10px);
+            padding-bottom: env(safe-area-inset-bottom, 12px);
+            padding-top: 6px;
             z-index: 30;
         }
 
         .tab-bar {
-            height: 56px;
+            height: 48px;
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -364,8 +349,8 @@
             color: #ffffff;
         }
         .tab-item svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             stroke: currentColor;
             fill: none;
             stroke-width: 1.8;
@@ -715,13 +700,6 @@
             </div>
 
             <div class="chat-list" id="chatListContainer"></div>
-
-            <div class="meta-ai-floater">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#fff" opacity="0.3"/>
-                    <circle cx="12" cy="12" r="5" fill="#fff"/>
-                </svg>
-            </div>
 
             <div class="tab-bar-wrapper">
                 <div class="tab-bar">
