@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Qissmet</title>
+
+    <!-- iOS App Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Qissmet">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: #0b141a;
+            overflow: hidden;
+        }
+
+        /* iOS Status Bar */
+        .status-bar {
+            height: 44px;
+            padding: 10px 24px 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            z-index: 50;
+            background: #000000;
+        }
+        .status-bar .icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .screen {
+            position: absolute;
+            top: 44px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #000000;
+        }
+        .screen.hidden {
+            display: none;
+        }
+
+        /* HOME SCREEN */
+        #homeScreen {
+            z-index: 10;
+            background: #000000;
+        }
+
+        .home-header {
+            padding: 8px 16px 4px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .home-header-left {
+            width: 40px;
+            height: 40px;
+            background: #1c1c1e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .home-header-left svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+        .home-header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .icon-circle-btn {
+            width: 40px;
+            height: 40px;
+            background: #1c1c1e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .icon-circle-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .add-chat-btn {
+            width: 40px;
+            height: 40px;
+            background: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .add-chat-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #000000;
+        }
+
+        .chats-title-row {
+            padding: 8px 16px 4px 16px;
+        }
+        .chats-title {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .search-box-wrapper {
+            padding: 6px 16px 10px 16px;
+        }
+        .search-box {
+            background: #1c1c1e;
+            border-radius: 12px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            color: #8e8e93;
+        }
+        .search-box svg {
+            width: 17px;
+            height: 17px;
+            stroke: #8e8e93;
+            stroke-width: 2.2;
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 8px;
+            padding: 2px 16px 10px 16px;
+            overflow-x: auto;
+        }
+        .filter-pills::-webkit-scrollbar { display: none; }
+        .pill {
+            background: #1c1c1e;
+            color: #8e8e93;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .pill.active {
+            background: #154c37;
+            color: #25d366;
+        }
+
+        /* CHAT LIST & SWIPE-TO-DELETE */
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 80px;
+            color: #8e8e93;
+            text-align: center;
+            gap: 12px;
+        }
+        .empty-state svg {
+            width: 54px;
+            height: 54px;
+            stroke: #3a3a3c;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .chat-row-container {
+            position: relative;
+            overflow: hidden;
+            background-color: #ff3b30;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .delete-action-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            background-color: #ff3b30;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .delete-action-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: #ffffff;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .chat-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 12px;
+            background-color: #000000;
+            transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1);
+            cursor: pointer;
+            user-select: none;
+        }
+        .chat-item:active {
+            background-color: #1c1c1e;
+        }
+        .chat-item.swiped {
+            transform: translateX(-80px);
+        }
+
+        .chat-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2c2c2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+        .chat-content {
+            flex: 1;
+            overflow: hidden;
+        }
+        .chat-top-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 3px;
+        }
+        .chat-contact-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-time {
+            font-size: 13px;
+            color: #8e8e93;
+        }
+        .chat-bottom-line {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #8e8e93;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-bottom-line svg {
+            width: 15px;
+            height: 11px;
+            stroke: #53bdeb;
+            fill: none;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        .meta-ai-floater {
+            position: absolute;
+            right: 18px;
+            bottom: 90px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ff5e7e, #7a22ff 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(122, 34, 255, 0.5);
+            cursor: pointer;
+        }
+
+        .tab-bar {
+            height: 72px;
+            background: #000000;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 12px;
+            padding-top: 4px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #8e8e93;
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+        }
+        .tab-item.active {
+            color: #ffffff;
+        }
+        .tab-item svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.8;
+        }
+        .tab-badge {
+            position: absolute;
+            top: -2px;
+            right: -6px;
+            background: #25d366;
+            color: #000000;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 1px 5px;
+        }
+
+        /* CONVERSATION DETAIL */
+        #chatScreen {
+            z-index: 20;
+            background-color: #0c1317;
+        }
+
+        .chat-header {
+            height: 56px;
+            background: #111b21;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 10px;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            color: #007aff;
+            font-size: 17px;
+            cursor: pointer;
+            gap: 2px;
+        }
+        .back-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: #007aff;
+            stroke-width: 2.5;
+            fill: none;
+        }
+        .back-btn span {
+            font-size: 17px;
+            color: #007aff;
+        }
+
+        .header-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #2c2c2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .header-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        .header-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e9edef;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            color: #007aff;
+            padding-right: 4px;
+        }
+        .header-actions svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: #007aff;
+            stroke-width: 2;
+        }
+
+        .chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 14px 20px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background-color: #0c1317;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        .date-badge-row {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0 6px 0;
+        }
+        .date-badge {
+            background-color: #182229;
+            color: #8696a0;
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .msg-row {
+            display: flex;
+            width: 100%;
+            margin: 2px 0;
+        }
+        .msg-row.outgoing {
+            justify-content: flex-end;
+        }
+        .msg-row.incoming {
+            justify-content: flex-start;
+        }
+
+        .bubble {
+            max-width: 80%;
+            border-radius: 16px;
+            padding: 6px 10px 5px 12px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.35;
+            color: #ffffff;
+            word-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 1.5px rgba(0,0,0,0.3);
+        }
+        .msg-row.outgoing .bubble {
+            background-color: #1b4d3e;
+            border-bottom-right-radius: 4px;
+        }
+        .msg-row.incoming .bubble {
+            background-color: #262d31;
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-text {
+            color: #ffffff;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .media-pill {
+            font-style: italic;
+            color: #8696a0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            align-self: flex-end;
+            margin-left: auto;
+            margin-top: 2px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            user-select: none;
+        }
+        .ticks {
+            width: 15px;
+            height: 11px;
+            display: inline-block;
+        }
+        .ticks svg {
+            width: 15px;
+            height: 11px;
+            stroke: #53bdeb;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .scroll-bottom-btn {
+            position: absolute;
+            right: 14px;
+            bottom: 74px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #1f2c34;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            z-index: 10;
+        }
+        .scroll-bottom-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: #8696a0;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .chat-input-bar {
+            min-height: 50px;
+            background: #111b21;
+            display: flex;
+            align-items: center;
+            padding: 6px 10px 10px 10px;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .input-plus-btn {
+            color: #007aff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+        }
+        .input-plus-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: #007aff;
+            stroke-width: 2.2;
+        }
+        .input-pill {
+            flex: 1;
+            height: 36px;
+            background: #202c33;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .input-pill input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e9edef;
+            font-size: 15px;
+            width: 100%;
+        }
+        .right-tools {
+            display: flex;
+            gap: 12px;
+            color: #007aff;
+            align-items: center;
+        }
+        .right-tools svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: #007aff;
+            stroke-width: 2;
+        }
+
+        .home-indicator-wrapper {
+            background: #000000;
+            padding-bottom: 4px;
+        }
+        .home-bar {
+            width: 134px;
+            height: 5px;
+            background: #ffffff;
+            border-radius: 100px;
+            margin: 4px auto 6px auto;
+            opacity: 0.8;
+        }
+
+        /* ACTION SHEET (CONFIRM DELETE) */
+        .modal-backdrop {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 12px 14px 28px 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .action-sheet-group {
+            background: #1c1c1e;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .action-sheet-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 17px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .action-sheet-btn.delete {
+            color: #ff453a;
+            font-weight: 600;
+        }
+        .action-sheet-btn.cancel {
+            background: #1c1c1e;
+            color: #007aff;
+            border-radius: 14px;
+            font-weight: 600;
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <input type="file" id="fileInput" accept=".txt" />
+
+        <!-- Top iOS Status Bar -->
+        <div class="status-bar">
+            <span>9:32</span>
+            <div class="icons">
+                <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff">
+                    <rect x="0" y="8" width="3" height="3" rx="0.5"/>
+                    <rect x="4.5" y="5.5" width="3" height="5.5" rx="0.5"/>
+                    <rect x="9" y="3" width="3" height="8" rx="0.5"/>
+                    <rect x="13.5" y="0" width="3" height="11" rx="0.5"/>
+                </svg>
+                <svg width="15" height="11" viewBox="0 0 16 12" fill="#fff">
+                    <path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4.2-2.8a6 6 0 018.4 0l1.2-1.2a7.7 7.7 0 00-10.8 0l1.2 1.2zm-2.4-2.4a9.4 9.4 0 0113.2 0l1.2-1.2a11.1 11.1 0 00-15.6 0l1.2 1.2z"/>
+                </svg>
+                <span style="font-size: 12px; margin-left: 2px;">78</span>
+                <svg width="24" height="12" viewBox="0 0 25 12" fill="none">
+                    <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#fff"/>
+                    <rect x="2" y="2" width="16" height="8" rx="2" fill="#fff"/>
+                    <path d="M23 4.5v3" stroke="#fff" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: WHATSAPP HOME / CHATS LIST -->
+        <div class="screen" id="homeScreen">
+            <div class="home-header">
+                <div class="home-header-left">
+                    <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                </div>
+                <div class="home-header-right">
+                    <div class="icon-circle-btn">
+                        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <label class="add-chat-btn" for="fileInput" title="Import WhatsApp Chat">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                    </label>
+                </div>
+            </div>
+
+            <div class="chats-title-row">
+                <h1 class="chats-title">Chats</h1>
+            </div>
+
+            <div class="search-box-wrapper">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="searchInput" placeholder="Ask Meta AI or Search" oninput="filterChats()" />
+                </div>
+            </div>
+
+            <div class="filter-pills">
+                <div class="pill active">All</div>
+                <div class="pill">Unread</div>
+                <div class="pill">Favorites</div>
+                <div class="pill">Groups</div>
+            </div>
+
+            <!-- Chat list container -->
+            <div class="chat-list" id="chatListContainer"></div>
+
+            <div class="meta-ai-floater">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#fff" opacity="0.3"/>
+                    <circle cx="12" cy="12" r="5" fill="#fff"/>
+                </svg>
+            </div>
+
+            <div class="tab-bar">
+                <div class="tab-item">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+                    <span>Updates</span>
+                </div>
+                <div class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <span>Calls</span>
+                </div>
+                <div class="tab-item">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Communities</span>
+                </div>
+                <div class="tab-item active">
+                    <svg viewBox="0 0 24 24" fill="#ffffff" stroke="none"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                    <span>Chats</span>
+                </div>
+                <div class="tab-item">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a8.5 8.5 0 0 1 13 0"/></svg>
+                    <span>You</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: ACTIVE CONVERSATION SCREEN -->
+        <div class="screen hidden" id="chatScreen">
+            <header class="chat-header">
+                <div class="back-btn" onclick="showHomeScreen()">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <span>Chats</span>
+                </div>
+
+                <div class="header-avatar" id="detailAvatar">A</div>
+
+                <div class="header-info">
+                    <div class="header-name" id="detailContactName">Contact</div>
+                </div>
+
+                <div class="header-actions">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="13" height="14" rx="2"/><polygon points="15 10 22 6 22 18 15 14"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+            </header>
+
+            <div class="chat-scroll" id="chatArea"></div>
+
+            <div class="scroll-bottom-btn" onclick="scrollToBottom()">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+
+            <div class="chat-input-bar">
+                <button class="input-plus-btn">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="19"></line></svg>
+                </button>
+
+                <div class="input-pill">
+                    <input type="text" placeholder="" readonly />
+                </div>
+
+                <div class="right-tools">
+                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION SHEET: DELETE CHAT -->
+        <div class="modal-backdrop" id="deleteSheetBackdrop" onclick="closeDeleteSheet(event)">
+            <div style="width: 100%;">
+                <div class="action-sheet-group">
+                    <button class="action-sheet-btn delete" onclick="confirmDeleteChat()">Delete Chat</button>
+                </div>
+                <button class="action-sheet-btn cancel" onclick="closeDeleteSheet()">Cancel</button>
+            </div>
+        </div>
+
+        <div class="home-indicator-wrapper">
+            <div class="home-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'whatsapp_restored_conversations_v4';
+        let chatPendingDelete = null;
+
+        function getStoredConversations() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (data) {
+                try { return JSON.parse(data); } catch (e) {}
+            }
+            return [];
+        }
+
+        function saveConversations(convos) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(convos));
+        }
+
+        function renderHomeList(filter = '') {
+            const listContainer = document.getElementById('chatListContainer');
+            listContainer.innerHTML = '';
+            const convos = getStoredConversations();
+
+            if (convos.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <p style="font-size: 16px; font-weight: 500;">No Chats</p>
+                        <p style="font-size: 13px; max-width: 250px;">Tap the green <b>+</b> button at the top to import a WhatsApp .txt export.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const filtered = convos.filter(c => c.contactName.toLowerCase().includes(filter.toLowerCase()));
+
+            filtered.forEach(convo => {
+                const rowWrapper = document.createElement('div');
+                rowWrapper.className = 'chat-row-container';
+
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'delete-action-btn';
+                deleteBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>Delete</span>
+                `;
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteChat(convo.id);
+                };
+                rowWrapper.appendChild(deleteBtn);
+
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                
+                let startX = 0;
+                let isSwiped = false;
+                let holdTimer = null;
+
+                item.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    holdTimer = setTimeout(() => {
+                        promptDeleteChat(convo.id);
+                    }, 600);
+                }, { passive: true });
+
+                item.addEventListener('touchmove', (e) => {
+                    const moveX = e.touches[0].clientX;
+                    if (Math.abs(moveX - startX) > 10) {
+                        clearTimeout(holdTimer);
+                    }
+                }, { passive: true });
+
+                item.addEventListener('touchend', (e) => {
+                    clearTimeout(holdTimer);
+                    const endX = e.changedTouches[0].clientX;
+                    const diffX = startX - endX;
+
+                    if (diffX > 50) {
+                        document.querySelectorAll('.chat-item.swiped').forEach(el => el.classList.remove('swiped'));
+                        item.classList.add('swiped');
+                        isSwiped = true;
+                    } else if (diffX < -30) {
+                        item.classList.remove('swiped');
+                        isSwiped = false;
+                    }
+                });
+
+                item.onclick = () => {
+                    if (item.classList.contains('swiped')) {
+                        item.classList.remove('swiped');
+                    } else {
+                        openChatScreen(convo.id);
+                    }
+                };
+
+                const initials = convo.contactName.charAt(0).toUpperCase();
+
+                item.innerHTML = `
+                    <div class="chat-avatar">${initials}</div>
+                    <div class="chat-content">
+                        <div class="chat-top-line">
+                            <span class="chat-contact-name">${escapeHtml(convo.contactName)}</span>
+                            <span class="chat-time">${convo.lastTime || ''}</span>
+                        </div>
+                        <div class="chat-bottom-line">
+                            <svg viewBox="0 0 16 11"><path d="M1 6l3 3 7-7M5 9l3 3 7-7"/></svg>
+                            <span>${escapeHtml(convo.lastMessage || '')}</span>
+                        </div>
+                    </div>
+                `;
+
+                rowWrapper.appendChild(item);
+                listContainer.appendChild(rowWrapper);
+            });
+        }
+
+        function openChatScreen(convoId) {
+            const convos = getStoredConversations();
+            const convo = convos.find(c => c.id === convoId);
+            if (!convo) return;
+
+            document.getElementById('detailContactName').innerText = convo.contactName;
+            document.getElementById('detailAvatar').innerText = convo.contactName.charAt(0).toUpperCase();
+
+            renderMessages(convo.messages);
+
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.remove('hidden');
+            scrollToBottom();
+        }
+
+        function showHomeScreen() {
+            document.getElementById('chatScreen').classList.add('hidden');
+            document.getElementById('homeScreen').classList.remove('hidden');
+            renderHomeList();
+        }
+
+        function scrollToBottom() {
+            const area = document.getElementById('chatArea');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function renderMessages(messages) {
+            const chatArea = document.getElementById('chatArea');
+            chatArea.innerHTML = '';
+            let lastDate = '';
+
+            messages.forEach(msg => {
+                if (msg.date !== lastDate) {
+                    lastDate = msg.date;
+                    const dateRow = document.createElement('div');
+                    dateRow.className = 'date-badge-row';
+                    dateRow.innerHTML = `<span class="date-badge">${escapeHtml(msg.date)}</span>`;
+                    chatArea.appendChild(dateRow);
+                }
+
+                const isOutgoing = msg.sender.toLowerCase().includes('subah');
+                const rowClass = isOutgoing ? 'outgoing' : 'incoming';
+
+                let textHtml = escapeHtml(msg.text);
+                if (!textHtml || textHtml.includes('<attached>') || textHtml.includes('omitted')) {
+                    textHtml = '<span class="media-pill">📷 Photo / Media</span>';
+                }
+
+                const row = document.createElement('div');
+                row.className = `msg-row ${rowClass}`;
+
+                const tickSvg = isOutgoing ? `
+                    <span class="ticks">
+                        <svg viewBox="0 0 16 11"><path d="M1 6l3 3 7-7M5 9l3 3 7-7"/></svg>
+                    </span>
+                ` : '';
+
+                row.innerHTML = `
+                    <div class="bubble">
+                        <div class="msg-text">${textHtml}</div>
+                        <div class="meta">
+                            ${msg.time}
+                            ${tickSvg}
+                        </div>
+                    </div>
+                `;
+                chatArea.appendChild(row);
+            });
+        }
+
+        /* DELETION LOGIC */
+        function promptDeleteChat(convoId) {
+            chatPendingDelete = convoId;
+            document.getElementById('deleteSheetBackdrop').classList.add('active');
+        }
+
+        function closeDeleteSheet(e) {
+            if (!e || e.target.id === 'deleteSheetBackdrop' || e.target.classList.contains('cancel')) {
+                document.getElementById('deleteSheetBackdrop').classList.remove('active');
+                chatPendingDelete = null;
+            }
+        }
+
+        function confirmDeleteChat() {
+            if (chatPendingDelete) {
+                deleteChat(chatPendingDelete);
+                closeDeleteSheet();
+            }
+        }
+
+        function deleteChat(convoId) {
+            let convos = getStoredConversations();
+            convos = convos.filter(c => c.id !== convoId);
+            saveConversations(convos);
+            renderHomeList();
+        }
+
+        /* FILE IMPORT */
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                parseAndStoreChat(evt.target.result);
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        function cleanString(str) {
+            return str.replace(/[\u200e\u200f\u202f\u200b\u00a0]/g, ' ').trim();
+        }
+
+        function parseAndStoreChat(rawText) {
+            const lines = rawText.split('\n');
+            const messageHeaderRegex = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.*)$/i;
+
+            const parsed = [];
+            let currentMsg = null;
+            let contactName = 'New Contact';
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = cleanString(lines[i]);
+                if (!line) continue;
+
+                const match = line.match(messageHeaderRegex);
+                if (match) {
+                    if (currentMsg) parsed.push(currentMsg);
+
+                    const sender = match[3].trim();
+                    if (!sender.toLowerCase().includes('subah') && contactName === 'New Contact') {
+                        contactName = sender;
+                    }
+
+                    currentMsg = {
+                        date: match[1].trim(),
+                        time: match[2].trim().replace(/:\d{2}(\s*[AP]M)/i, '$1'),
+                        sender: sender,
+                        text: match[4] ? match[4].trim() : ''
+                    };
+                } else if (currentMsg) {
+                    currentMsg.text += '\n' + line;
+                }
+            }
+            if (currentMsg) parsed.push(currentMsg);
+
+            if (parsed.length === 0) {
+                alert('Could not parse any messages from this file.');
+                return;
+            }
+
+            const convos = getStoredConversations();
+            const existingIdx = convos.findIndex(c => c.contactName.toLowerCase() === contactName.toLowerCase());
+
+            const lastMsg = parsed[parsed.length - 1];
+            const newConvo = {
+                id: 'chat_' + Date.now(),
+                contactName: contactName,
+                lastTime: lastMsg ? lastMsg.time : '',
+                lastMessage: lastMsg ? (lastMsg.text.slice(0, 35) + '...') : '',
+                messages: parsed
+            };
+
+            if (existingIdx >= 0) {
+                convos[existingIdx] = newConvo;
+            } else {
+                convos.unshift(newConvo);
+            }
+
+            saveConversations(convos);
+            renderHomeList();
+            openChatScreen(newConvo.id);
+        }
+
+        function filterChats() {
+            const query = document.getElementById('searchInput').value;
+            renderHomeList(query);
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderHomeList();
+        });
+    </script>
+</body>
+</html>
