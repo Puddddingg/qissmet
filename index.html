@@ -516,6 +516,18 @@
             background-color: #225c48 !important;
         }
 
+        .quoted-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #25d366;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #8696a0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
         .msg-text {
             color: #ffffff;
             font-size: 15px;
@@ -1011,6 +1023,17 @@
             </div>
         </div>
 
+        <!-- IMPORT PLATFORM SELECTION SHEET -->
+        <div class="modal-backdrop" id="importSheetBackdrop" onclick="closeImportSheet(event)">
+            <div style="width: 100%;">
+                <div class="action-sheet-group">
+                    <button class="action-sheet-btn" style="color: #007aff; font-weight: 600;" onclick="selectImportPlatform('ios')">Import from iOS</button>
+                    <button class="action-sheet-btn" style="color: #007aff; font-weight: 600;" onclick="selectImportPlatform('android')">Import from Android</button>
+                </div>
+                <button class="action-sheet-btn cancel" onclick="closeImportSheet()">Cancel</button>
+            </div>
+        </div>
+
         <!-- ACTION SHEET: DELETE CHAT -->
         <div class="modal-backdrop" id="deleteSheetBackdrop" onclick="closeDeleteSheet(event)">
             <div style="width: 100%;">
@@ -1030,8 +1053,21 @@
         let chatPendingDelete = null;
         let currentMessages = [];
         let renderLimit = 100;
+        let selectedPlatform = 'ios';
 
         function triggerFileInput() {
+            document.getElementById('importSheetBackdrop').classList.add('active');
+        }
+
+        function closeImportSheet(e) {
+            if (!e || e.target.id === 'importSheetBackdrop' || e.target.classList.contains('cancel')) {
+                document.getElementById('importSheetBackdrop').classList.remove('active');
+            }
+        }
+
+        function selectImportPlatform(platform) {
+            selectedPlatform = platform;
+            closeImportSheet();
             document.getElementById('fileInput').click();
         }
 
@@ -1045,7 +1081,7 @@
 
             const reader = new FileReader();
             reader.onload = function(evt) {
-                parseAndStoreChat(evt.target.result);
+                parseAndStoreChat(evt.target.result, selectedPlatform);
             };
             reader.readAsText(file);
             e.target.value = '';
@@ -1412,6 +1448,11 @@
                     textHtml = '<span class="media-pill">📷 Photo / Media</span>';
                 }
 
+                let quotedHtml = '';
+                if (msg.quotedText) {
+                    quotedHtml = `<div class="quoted-box">${escapeHtml(msg.quotedText)}</div>`;
+                }
+
                 const row = document.createElement('div');
                 row.className = `msg-row ${rowClass}`;
 
@@ -1423,6 +1464,7 @@
 
                 row.innerHTML = `
                     <div class="bubble">
+                        ${quotedHtml}
                         <div class="msg-text">${textHtml}</div>
                         <div class="meta">
                             ${msg.time}
@@ -1483,9 +1525,15 @@
             return str.replace(/[\u200e\u200f\u202f\u200b\u00a0]/g, ' ').trim();
         }
 
-        async function parseAndStoreChat(rawText) {
+        async function parseAndStoreChat(rawText, platform = 'ios') {
             const lines = rawText.split('\n');
-            const messageHeaderRegex = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.*)$/i;
+            
+            let messageHeaderRegex;
+            if (platform === 'ios') {
+                messageHeaderRegex = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.*)$/i;
+            } else {
+                messageHeaderRegex = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}\s*(?:[AP]M)?)\s*-\s*([^:]+):\s*(.*)$/i;
+            }
 
             const parsed = [];
             let currentMsg = null;
@@ -1504,11 +1552,29 @@
                         contactName = sender;
                     }
 
+                    let msgText = match[4] ? match[4].trim() : '';
+                    let quotedText = '';
+
+                    if (platform === 'ios') {
+                        const iosReplyMatch = msgText.match(/^"([^"]+)"\s*\/\s*(.*)$/s);
+                        if (iosReplyMatch) {
+                            quotedText = iosReplyMatch[1];
+                            msgText = iosReplyMatch[2];
+                        }
+                    } else {
+                        if (msgText.startsWith('>')) {
+                            const linesOfMsg = msgText.split('\n');
+                            quotedText = linesOfMsg[0].replace(/^>\s*/, '');
+                            msgText = linesOfMsg.slice(1).join('\n');
+                        }
+                    }
+
                     currentMsg = {
                         date: match[1].trim(),
                         time: match[2].trim().replace(/:\d{2}(\s*[AP]M)/i, '$1'),
                         sender: sender,
-                        text: match[4] ? match[4].trim() : ''
+                        text: msgText,
+                        quotedText: quotedText
                     };
                 } else if (currentMsg) {
                     currentMsg.text += '\n' + line;
@@ -1517,7 +1583,7 @@
             if (currentMsg) parsed.push(currentMsg);
 
             if (parsed.length === 0) {
-                alert('Could not parse any messages from this file.');
+                alert(`Could not parse any messages using the ${platform.toUpperCase()} format. Please verify the platform choice.`);
                 return;
             }
 
@@ -1525,6 +1591,7 @@
             const newConvo = {
                 id: 'chat_' + Date.now(),
                 contactName: contactName,
+                platform: platform,
                 lastTime: lastMsg ? lastMsg.time : '',
                 lastMessage: lastMsg ? (lastMsg.text.slice(0, 35) + '...') : '',
                 messages: parsed
