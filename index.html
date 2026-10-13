@@ -845,6 +845,14 @@
             overflow: hidden;
             margin-bottom: 10px;
         }
+        .action-sheet-title {
+            padding: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8e8e93;
+            text-align: center;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
         .action-sheet-btn {
             width: 100%;
             padding: 16px;
@@ -853,6 +861,10 @@
             border: none;
             cursor: pointer;
             text-align: center;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+        .action-sheet-btn:last-child {
+            border-bottom: none;
         }
         .action-sheet-btn.delete {
             color: #ff453a;
@@ -863,6 +875,7 @@
             color: #007aff;
             border-radius: 14px;
             font-weight: 600;
+            border-bottom: none;
         }
 
         #fileInput, #avatarFileInput {
@@ -925,7 +938,7 @@
                         <span>Calls</span>
                     </div>
                     <div class="tab-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         <span>Communities</span>
                     </div>
                     <div class="tab-item active">
@@ -1034,6 +1047,16 @@
             </div>
         </div>
 
+        <!-- USER ROLE SELECTION SHEET -->
+        <div class="modal-backdrop" id="userRoleSheetBackdrop">
+            <div style="width: 100%;">
+                <div class="action-sheet-group">
+                    <div class="action-sheet-title">Who are you in this chat?</div>
+                    <div id="userRoleOptionsContainer"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ACTION SHEET: DELETE CHAT -->
         <div class="modal-backdrop" id="deleteSheetBackdrop" onclick="closeDeleteSheet(event)">
             <div style="width: 100%;">
@@ -1054,6 +1077,8 @@
         let currentMessages = [];
         let renderLimit = 100;
         let selectedPlatform = 'ios';
+        let pendingConvoToSave = null;
+        let activeConvoObject = null;
 
         function triggerFileInput() {
             document.getElementById('importSheetBackdrop').classList.add('active');
@@ -1301,6 +1326,7 @@
             const convo = convos.find(c => c.id === convoId);
             if (!convo) return;
 
+            activeConvoObject = convo;
             document.getElementById('detailContactName').innerText = convo.contactName;
             document.getElementById('infoContactName').innerText = convo.contactName;
             applyAvatarToUI(convo.avatar, convo.contactName);
@@ -1431,6 +1457,10 @@
                 ? currentMessages.slice(currentMessages.length - renderLimit)
                 : currentMessages;
 
+            const userSenderName = (activeConvoObject && activeConvoObject.userSender)
+                ? activeConvoObject.userSender.toLowerCase()
+                : '';
+
             sliceToRender.forEach(msg => {
                 if (msg.date !== lastDate) {
                     lastDate = msg.date;
@@ -1440,7 +1470,8 @@
                     chatArea.appendChild(dateRow);
                 }
 
-                const isOutgoing = msg.sender.toLowerCase().includes('subah');
+                // Check if message sender matches selected user sender
+                const isOutgoing = userSenderName ? msg.sender.toLowerCase() === userSenderName : false;
                 const rowClass = isOutgoing ? 'outgoing' : 'incoming';
 
                 let textHtml = escapeHtml(msg.text);
@@ -1537,7 +1568,7 @@
 
             const parsed = [];
             let currentMsg = null;
-            let contactName = 'New Contact';
+            const uniqueSendersSet = new Set();
 
             for (let i = 0; i < lines.length; i++) {
                 const line = cleanString(lines[i]);
@@ -1548,9 +1579,7 @@
                     if (currentMsg) parsed.push(currentMsg);
 
                     const sender = match[3].trim();
-                    if (!sender.toLowerCase().includes('subah') && contactName === 'New Contact') {
-                        contactName = sender;
-                    }
+                    uniqueSendersSet.add(sender);
 
                     let msgText = match[4] ? match[4].trim() : '';
                     let quotedText = '';
@@ -1587,15 +1616,50 @@
                 return;
             }
 
+            const sendersList = Array.from(uniqueSendersSet);
             const lastMsg = parsed[parsed.length - 1];
-            const newConvo = {
+
+            pendingConvoToSave = {
                 id: 'chat_' + Date.now(),
-                contactName: contactName,
                 platform: platform,
+                senders: sendersList,
                 lastTime: lastMsg ? lastMsg.time : '',
                 lastMessage: lastMsg ? (lastMsg.text.slice(0, 35) + '...') : '',
                 messages: parsed
             };
+
+            promptUserRoleSelection(sendersList);
+        }
+
+        function promptUserRoleSelection(senders) {
+            const container = document.getElementById('userRoleOptionsContainer');
+            container.innerHTML = '';
+
+            senders.forEach(sender => {
+                const btn = document.createElement('button');
+                btn.className = 'action-sheet-btn';
+                btn.style.color = '#007aff';
+                btn.style.fontWeight = '600';
+                btn.innerText = sender;
+                btn.onclick = () => finalizeChatImport(sender);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('userRoleSheetBackdrop').classList.add('active');
+        }
+
+        async function finalizeChatImport(chosenUserSender) {
+            document.getElementById('userRoleSheetBackdrop').classList.remove('active');
+            if (!pendingConvoToSave) return;
+
+            const otherSenders = pendingConvoToSave.senders.filter(s => s.toLowerCase() !== chosenUserSender.toLowerCase());
+            const contactName = otherSenders.length > 0 ? otherSenders.join(', ') : chosenUserSender;
+
+            pendingConvoToSave.userSender = chosenUserSender;
+            pendingConvoToSave.contactName = contactName;
+
+            const newConvo = pendingConvoToSave;
+            pendingConvoToSave = null;
 
             await saveConversation(newConvo);
             renderHomeList();
